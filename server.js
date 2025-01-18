@@ -1,7 +1,5 @@
-var express = require('express');
-var server = express();
-
-const { getAllS3Buckets } = require('./aws/aws-operations')
+const { server } = require('./routes');
+const fileRouter = require('./routes/files.routes');
 
 var port = process.env.PORT || 5000;
 
@@ -10,8 +8,13 @@ var port = process.env.PORT || 5000;
 //middlewares
 
 //routes
+server.use("/file", fileRouter);
+
+server.use("/", (req, res) => {
+    res.send("No Home Page!!!");
+});
+
 
 server.listen(port, () => {
     console.log(`server running on port ${port}`);
-    console.log(getAllS3Buckets());
 });
