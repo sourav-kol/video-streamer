@@ -1,20 +1,21 @@
 const { express } = require('.');
 var router = express.Router();
-const { addFile } = require('.././controller/file.controller');
+const { getMultipartSignedUrls } = require('.././controller/file.controller');
 
-router.get("/", async (req, res) => {
-    var url = "";
-    await addFile()
+router.post("/signed/urls", async (req, res) => {
+    const {key, uploadId, totalParts, fileType} = req.body;
+    var signedUrls = [];
+    await getMultipartSignedUrls(key, uploadId, totalParts, fileType)
     .then((res) => {
         console.log("url:  \n ",res);
-        url = res;
+        signedUrls = res;
     });
-    res.status(200).send(url);
-})
+    res.status(200).send(signedUrls);
+});
 
-router.put("/upload", (req, res) => {
-    res.send("file upload");
-})
+// router.put("/upload", (req, res) => {
+//     res.send("file upload");
+// })
 
 module.exports = router;
 

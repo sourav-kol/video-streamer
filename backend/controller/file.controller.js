@@ -1,7 +1,7 @@
-var { uploadFile } = require('.././service/file.service');
+var { getSignedUrls } = require('.././service/file.service');
 
-const addFile = async () => {
-    return await uploadFile();
+const getMultipartSignedUrls = async () => {
+    return await getSignedUrls();
 }
 
-module.exports = { addFile }
+module.exports = { getMultipartSignedUrls }

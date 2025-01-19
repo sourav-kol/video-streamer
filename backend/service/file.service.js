@@ -1,8 +1,8 @@
-const { uploadMultipartFile } = require('../aws/aws-operations');
+const { getMultipartSignedUrls } = require('../aws/aws-operations');
 
-const uploadFile = async () => {
-    var url = await uploadMultipartFile();
+const getSignedUrls = async (key, uploadId, totalParts, fileType) => {
+    var url = await getMultipartSignedUrls(key, uploadId, totalParts, fileType);
     return url;
 }
 
-module.exports = { uploadFile }
+module.exports = { getSignedUrls }

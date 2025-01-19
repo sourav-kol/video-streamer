@@ -13,20 +13,27 @@ var getAllS3Buckets = async () => {
 }
 
 //method to upload multipart file in s3 bucket
-var uploadMultipartFile = async () => {
-    return await createPresignedURL("some-id")
+var getMultipartSignedUrls = async (key, uploadId, totalParts, fileType) => {
+    return await createPresignedURL(key, uploadId, totalParts, fileType)
 }
-var createPresignedURL = async (id) => {
+var createPresignedURL = async (key, uploadId, totalParts, fileType) => {
     var s3 = getAWSConnection();
     const signedUrlExpireSeconds = 60 * 5;
-console.log(process.env.AWS_BUCKET);
-    var params = {
-        Bucket: process.env.AWS_BUCKET,
-        Key: id,
-        Expires: signedUrlExpireSeconds
+    var signedUrls = [];
+
+    for (let partNumber = 0; partNumber < totalParts; partNumber++) {
+        var params = {
+            Bucket: process.env.AWS_BUCKET,
+            Key: key,
+            Expires: signedUrlExpireSeconds,
+            UploadId: uploadId,
+            PartNumber: partNumber + 1,
+            ContentType: fileType
+        }
+        var signedUrl = await s3.getSignedUrlPromise('getObject', params);
+        signedUrls.push(signedUrl);
     }
-    var signedUrl = await s3.getSignedUrlPromise('getObject', params);
-    return signedUrl;
+    return signedUrls;
 }
 
-module.exports = { getAllS3Buckets, uploadMultipartFile }
+module.exports = { getAllS3Buckets, getMultipartSignedUrls }
