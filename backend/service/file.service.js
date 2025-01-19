@@ -1,8 +1,18 @@
-const { uploadMultipartFile } = require('../aws/aws-operations');
+const { uploadMultipartFile, uploadPart, completeUpload } = require('../aws/aws-operations');
 
-const uploadFile = async () => {
-    var url = await uploadMultipartFile();
-    return url;
+const startMultipartUpload = async (params) => {
+    var upload = await uploadMultipartFile(params);
+    return upload;
 }
 
-module.exports = { uploadFile }
+const uploadFilePart = async (fileName, partNumber, uploadId, fileChunk) => {
+    var response = await uploadPart(fileName, partNumber, uploadId, fileChunk);
+    return response;
+}
+
+const completeUpload = async (fileName, uploadId, parts) => {
+    var response = await completeUpload(fileName, uploadId, parts);
+    return response;
+}
+
+module.exports = { startMultipartUpload, uploadFilePart, completeUpload }
