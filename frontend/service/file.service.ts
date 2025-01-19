@@ -21,7 +21,7 @@ export const handleFileUpload = async (file: File) => {
         uploadId: uploadId,
         totalParts: totalParts
     }
-    await axios.post("http://localhost:5000/file/uplaod/urls", params)
+    await axios.post("http://localhost:5000/file/signed/urls", params)
         .then(res => {
             signedUrls = res.data;
         }).catch(err => {
