@@ -1,23 +1,29 @@
 'use client'
 
 import React, { useState } from "react";
+import { handleFileUpload } from '../../service/file.service';
 
 type Props = {
-    setFile: any,
-    setFileUrl: any
 }
 
-export default function UploadVideo(props: Props) {
-    const { setFile, setFileUrl } = props;
+export default function UploadVideo() {
+    const [file, setFile] = useState<File>();
 
-    const handleFileChange = (e:any) => {
+    const handleFileChange = (e: any) => {
         setFile(e.target.files[0]);
     };
+
+    const onUpload = () => {
+        if (!file)
+            return "Please select a file to be uplaoded!!!";
+
+        handleFileUpload(file);
+    }
 
     return (
         <div>
             <input type="file" onChange={handleFileChange} />
-            <button disabled={false} onClick={() => { }}>
+            <button disabled={!file} onClick={onUpload}>
                 Upload
             </button>
             <hr />
@@ -27,6 +33,6 @@ export default function UploadVideo(props: Props) {
                     View Uploaded File
                 </a>
             )} */}
-        </div>
+        </div >
     );
 }

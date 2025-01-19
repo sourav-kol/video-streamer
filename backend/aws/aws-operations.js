@@ -16,21 +16,22 @@ var getAllS3Buckets = async () => {
 var getMultipartSignedUrls = async (key, uploadId, totalParts, fileType) => {
     return await createPresignedURL(key, uploadId, totalParts, fileType)
 }
+
 var createPresignedURL = async (key, uploadId, totalParts, fileType) => {
     var s3 = getAWSConnection();
     const signedUrlExpireSeconds = 60 * 5;
     var signedUrls = [];
 
-    for (let partNumber = 0; partNumber < totalParts; partNumber++) {
+    for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
         var params = {
             Bucket: process.env.AWS_BUCKET,
             Key: key,
             Expires: signedUrlExpireSeconds,
             UploadId: uploadId,
-            PartNumber: partNumber + 1,
+            PartNumber: partNumber,
             ContentType: fileType
         }
-        var signedUrl = await s3.getSignedUrlPromise('getObject', params);
+        var signedUrl = await s3.getSignedUrlPromise('upload-video', params);
         signedUrls.push(signedUrl);
     }
     return signedUrls;
