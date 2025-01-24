@@ -1,6 +1,6 @@
 const { getAWSConnection } = require('./aws');
 
-//test methot to verify connection...
+//test method to verify connection...
 var getAllS3Buckets = async () => {
     var s3 = getAWSConnection();
 
@@ -21,7 +21,6 @@ var createPresignedURL = async (key, uploadId, totalParts, fileType) => {
     var s3 = getAWSConnection();
     const signedUrlExpireSeconds = 60 * 5;
     var signedUrls = [];
-
     for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
         var params = {
             Bucket: process.env.AWS_BUCKET,

@@ -1,10 +1,11 @@
-const { server } = require('./routes');
+const { server, express } = require('./routes');
 const fileRouter = require('./routes/files.routes');
 var cors = require('cors')
- 
+
 
 var port = process.env.PORT || 5000;
 
+server.use(express.json());
 //cors - FE 
 var corsOptions = {
   origin: 'http://localhost:3000',
@@ -17,10 +18,10 @@ server.use(cors(corsOptions));
 server.use("/file", fileRouter);
 
 server.use("/", (req, res) => {
-    res.status(404).send("Not Found");
+  res.status(404).send("Not Found");
 });
 
 
 server.listen(port, () => {
-    console.log(`server running on port ${port}`);
+  console.log(`server running on port ${port}`);
 });
