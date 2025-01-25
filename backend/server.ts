@@ -2,7 +2,7 @@ import { server, express } from './routes';
 import { fileRouter } from './routes/files.routes';
 import cors from 'cors';
 
-var port = process.env.PORT || 5000;
+var port = process.env.PORT || 3000;
 
 server.use(express.json());
 //cors - FE 
