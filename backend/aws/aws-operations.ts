@@ -1,18 +1,6 @@
-import { CompleteMultipartUploadOutput, CompleteMultipartUploadRequest, CreateMultipartUploadOutput, CreateMultipartUploadRequest } from 'aws-sdk/clients/s3';
+import { CompleteMultipartUploadRequest, CreateMultipartUploadOutput, CreateMultipartUploadRequest, UploadPartRequest } from 'aws-sdk/clients/s3';
 import { getAWSConnection } from './aws';
-import { preSignedUrlOutput } from '.././types/aws';
-
-//test method to verify connection...
-const getAllS3Buckets = async () => {
-    var s3 = getAWSConnection();
-
-    s3.listBuckets({}, function (err, data) {
-        if (err)
-            console.log("err:  ", err, err.stack); // an error occurred
-
-        else console.log("data:  ", data.Buckets);           // successful response
-    })
-}
+import { preSignedUrlOutput, completeUploadRequest } from '.././types/aws';
 
 const startMultipartUpload = async (fileName: string, fileType: string): Promise<string> => {
     const params: CreateMultipartUploadRequest = {
@@ -27,6 +15,41 @@ const startMultipartUpload = async (fileName: string, fileType: string): Promise
 
     return upload.UploadId as string;
 }
+
+const uploadFilePart = async (key: string, partNumber: number, fileType: string, uploadId: string, chunk: Blob): Promise<completeUploadRequest> => {
+    var s3 = getAWSConnection();
+    var params: UploadPartRequest = {
+        Bucket: process.env.AWS_BUCKET,
+        Key: key,
+        PartNumber: partNumber,
+        UploadId: uploadId,
+        Body: chunk
+    }
+    var uploaded = await s3.uploadPart(params).promise();
+    return {
+        etag: uploaded.ETag,
+        partNumber: partNumber
+    }
+}
+
+const completeUpload = async (fileName: string, uploadId: string, parts: completeUploadRequest[]): Promise<boolean> => {
+    const params: CompleteMultipartUploadRequest = {
+        Bucket: process.env.AWS_BUCKET || "",
+        Key: fileName,
+        UploadId: uploadId,
+        MultipartUpload: {
+            Parts: parts.map((x) => {
+                return { ETag: x.etag, PartNumber: x.partNumber };
+            }),
+        },
+    };
+    var s3 = getAWSConnection();
+    console.log("params: ", params);
+    s3.completeMultipartUpload(params);
+    return true;
+}
+
+//--- Not Used ---
 
 //method to upload multipart file in s3 bucket
 const getMultipartSignedUrls = async (key: string, totalParts: number, fileType: string): Promise<preSignedUrlOutput | string> => {
@@ -61,18 +84,16 @@ const createMultipartPresignedURL = async (key: string, uploadId: string, totalP
     };
 }
 
-const completeUpload = async (fileName: string, uploadId: string, parts: any): Promise<boolean> => {
-    const params: CompleteMultipartUploadRequest = {
-        Bucket: process.env.AWS_BUCKET || "",
-        Key: fileName,
-        UploadId: uploadId,
-        MultipartUpload: {
-            Parts: parts,
-        },
-    };
+//test method to verify connection...
+const getAllS3Buckets = async () => {
     var s3 = getAWSConnection();
-    s3.completeMultipartUpload(params);
-    return true;
+
+    s3.listBuckets({}, function (err, data) {
+        if (err)
+            console.log("err:  ", err, err.stack); // an error occurred
+
+        else console.log("data:  ", data.Buckets);           // successful response
+    })
 }
 
-export { getAllS3Buckets, getMultipartSignedUrls, completeUpload }
+export { getAllS3Buckets, getMultipartSignedUrls, completeUpload, startMultipartUpload, uploadFilePart }
