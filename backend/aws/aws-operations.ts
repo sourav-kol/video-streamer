@@ -42,17 +42,18 @@ const getMultipartSignedUrls = async (key: string, totalParts: number, fileType:
 const createMultipartPresignedURL = async (key: string, uploadId: string, totalParts: number): Promise<preSignedUrlOutput> => {
     var s3 = getAWSConnection();
     const signedUrlExpireSeconds = 60 * 5;
-    console.log("params: ", key, uploadId, totalParts);
     var signedUrls: string[] = [];
-    for (let partNumber = 1; partNumber <= 1; partNumber++) {
+
+    for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
         var params = {
             Bucket: process.env.AWS_BUCKET,
             Key: key,
             Expires: signedUrlExpireSeconds,
-            UploadId: uploadId,
-            PartNumber: partNumber
+            PartNumber: partNumber,
+            UploadId: uploadId
         }
-        var signedUrl = s3.getSignedUrl('upload-video', params);
+        console.log("params:  ", params);
+        var signedUrl = s3.getSignedUrl('uploadPart', params);
         console.log("urls:  ", signedUrl);
         signedUrls.push(signedUrl);
     }
