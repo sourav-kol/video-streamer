@@ -1,6 +1,6 @@
 import axios from "axios";
-import { v4 as uuidv4 } from 'uuid';
 import { CHUNK_SIZE } from "@/constants/app-constants";
+import { generateServerURL } from '../helper/urlHelper';
 
 //todo: move to other file
 type uploadVideoResponse = {
@@ -14,7 +14,6 @@ export const handleFileUpload = async (file: File) => {
 
     const fileName = file.name;
     const fileType = file.type;
-    let uploadId = uuidv4();
     var uploadVideoRes: uploadVideoResponse;
 
     const totalParts = Math.ceil(file.size / CHUNK_SIZE);
@@ -24,37 +23,43 @@ export const handleFileUpload = async (file: File) => {
     var params = {
         key: fileName,
         fileType: fileType,
-        uploadId: uploadId,
         totalParts: totalParts
     }
     //todo: fetch base url from env file...
-    await axios.post("http://localhost:5000/file/signed/urls", params)
+    await axios.post(generateServerURL("file/signed/urls"), params)
         .then(res => {
             uploadVideoRes = res.data;
             console.log("urls: ", uploadVideoRes);
+            return res.data as uploadVideoResponse;
+        })
+        .then((res) => {
+            console.log("here!!");
+            uploadFileChunkByPresignedURL(file, totalParts, res.urls);
         }).catch(err => {
 
         });
-
-
-    //await uploadFileChunkByPresignedURL(file, totalParts, uploadVideoRes);
 }
 
-
-export const uploadFileChunkByPresignedURL = async (file: File, totalParts: number, preSignedUrl: string[]) => {
-    if (totalParts != preSignedUrl.length)
+//todo: maybe, move to helper...?
+const uploadFileChunkByPresignedURL = async (file: File, totalParts: number, preSignedUrl: string[]) => {
+    if (totalParts != preSignedUrl.length) {
+        console.log("error uploading......");
         return "error uploading video...";
+    }
 
     var uploadPromise: Promise<any>[] = [];
 
-    for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
+    for (let partNumber = 0; partNumber < totalParts; partNumber++) {
+        console.log("uploading to ", preSignedUrl[partNumber]);
         const start = (partNumber - 1) * CHUNK_SIZE;
         const end = Math.min(start + CHUNK_SIZE, file.size);
         const fileChunk = file.slice(start, end);
         uploadPromise.push(uploadToPresignedUrl(preSignedUrl[partNumber], fileChunk))
     }
 
-    await Promise.all(uploadPromise);
+    var uploadAllParts = await Promise.all(uploadPromise);
+
+    console.log("presigned output: ", uploadAllParts);
 }
 
 const uploadToPresignedUrl = (preSignedUrl: string, chunk: Blob): Promise<any> => {

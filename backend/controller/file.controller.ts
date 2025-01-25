@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getSignedUrls } from '.././service/file.service';
+import { getSignedUrls, completeMultipartUpload } from '.././service/file.service';
 
 const getMultipartSignedUrls = async (req: Request, res: Response) => {
     const { key, totalParts, fileType } = req.body;
@@ -9,4 +9,10 @@ const getMultipartSignedUrls = async (req: Request, res: Response) => {
     res.status(200).send(result);
 }
 
-export { getMultipartSignedUrls }
+const completeUpload = async (req: Request, res: Response) => {
+    const { key, uploadId, parts } = req.body;
+    await completeMultipartUpload(key, uploadId, parts);
+    res.status(200).send("complete!!");
+}
+
+export { getMultipartSignedUrls, completeUpload }

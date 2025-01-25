@@ -52,9 +52,7 @@ const createMultipartPresignedURL = async (key: string, uploadId: string, totalP
             PartNumber: partNumber,
             UploadId: uploadId
         }
-        console.log("params:  ", params);
         var signedUrl = s3.getSignedUrl('uploadPart', params);
-        console.log("urls:  ", signedUrl);
         signedUrls.push(signedUrl);
     }
     return {

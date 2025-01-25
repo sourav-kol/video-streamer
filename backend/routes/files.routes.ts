@@ -1,9 +1,11 @@
 import { express } from './index';
-import { getMultipartSignedUrls } from '.././controller/file.controller';
+import { getMultipartSignedUrls, completeUpload } from '.././controller/file.controller';
 
 var fileRouter = express.Router();
 
 fileRouter.post("/signed/urls", getMultipartSignedUrls);
+
+fileRouter.post("/upload/complete", completeUpload);
 
 export { fileRouter };
 
