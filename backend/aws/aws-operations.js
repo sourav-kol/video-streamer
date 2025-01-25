@@ -1,7 +1,7 @@
 const { getAWSConnection } = require('./aws');
 
 //test method to verify connection...
-var getAllS3Buckets = async () => {
+const getAllS3Buckets = async () => {
     var s3 = getAWSConnection();
 
     s3.listBuckets({}, function (err, data) {
@@ -12,28 +12,65 @@ var getAllS3Buckets = async () => {
     })
 }
 
-//method to upload multipart file in s3 bucket
-var getMultipartSignedUrls = async (key, uploadId, totalParts, fileType) => {
-    return await createPresignedURL(key, uploadId, totalParts, fileType)
+const startMultipartUpload = async (fileName, fileType) => {
+    const params = {
+        Bucket: process.env.AWS_BUCKET,
+        Key: fileName,
+        ContentType: fileType,
+    };
+
+    var s3 = getAWSConnection();
+
+    const upload = await s3.createMultipartUpload(params).promise();
+
+    return upload.UploadId;
 }
 
-var createPresignedURL = async (key, uploadId, totalParts, fileType) => {
+//method to upload multipart file in s3 bucket
+const getMultipartSignedUrls = async (key, totalParts, fileType) => {
+    var uploadId = await startMultipartUpload(key, fileType);
+
+    if (!uploadId)
+        return "No upload id generated";
+
+    return await createPresignedURL(key, uploadId, totalParts);
+}
+
+const createPresignedURL = async (key, uploadId, totalParts) => {
     var s3 = getAWSConnection();
     const signedUrlExpireSeconds = 60 * 5;
+    console.log("params: ", key, uploadId, totalParts);
     var signedUrls = [];
-    for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
+    for (let partNumber = 1; partNumber <= 1; partNumber++) {
         var params = {
             Bucket: process.env.AWS_BUCKET,
             Key: key,
             Expires: signedUrlExpireSeconds,
             UploadId: uploadId,
-            PartNumber: partNumber,
-            ContentType: fileType
+            PartNumber: partNumber
         }
-        var signedUrl = await s3.getSignedUrlPromise('upload-video', params);
+        var signedUrl = s3.getSignedUrl('upload-video', params);
+        console.log("urls:  ", signedUrl);
         signedUrls.push(signedUrl);
     }
-    return signedUrls;
+    return {
+        urls: signedUrl,
+        uploadId: uploadId
+    };
 }
 
-module.exports = { getAllS3Buckets, getMultipartSignedUrls }
+const completeUpload = async (fileName, uploadId, parts) => {
+    const params = {
+        Bucket: process.env.AWS_BUCKET,
+        Key: fileName,
+        UploadId: uploadId,
+        MultipartUpload: {
+            Parts: parts,
+        },
+    };
+    var s3 = getAWSConnection();
+    const complete = await s3.completeMultipartUpload(params);
+    return { fileUrl: complete.Location };
+}
+
+module.exports = { getAllS3Buckets, getMultipartSignedUrls, completeUpload }

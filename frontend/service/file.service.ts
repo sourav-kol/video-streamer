@@ -2,6 +2,12 @@ import axios from "axios";
 import { v4 as uuidv4 } from 'uuid';
 import { CHUNK_SIZE } from "@/constants/app-constants";
 
+//todo: move to other file
+type uploadVideoResponse = {
+    urls: string[],
+    uploadId: string
+}
+
 export const handleFileUpload = async (file: File) => {
     if (!file)
         return "Please select a file to be uplaoded!!!";
@@ -9,7 +15,7 @@ export const handleFileUpload = async (file: File) => {
     const fileName = file.name;
     const fileType = file.type;
     let uploadId = uuidv4();
-    var signedUrls: string[] = [];
+    var uploadVideoRes: uploadVideoResponse;
 
     const totalParts = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -21,16 +27,17 @@ export const handleFileUpload = async (file: File) => {
         uploadId: uploadId,
         totalParts: totalParts
     }
+    //todo: fetch base url from env file...
     await axios.post("http://localhost:5000/file/signed/urls", params)
         .then(res => {
-            signedUrls = res.data;
+            uploadVideoRes = res.data;
+            console.log("urls: ", uploadVideoRes);
         }).catch(err => {
 
         });
-    
-    console.log("urls: ", signedUrls);
 
-    await uploadFileChunkByPresignedURL(file, totalParts, signedUrls);
+
+    //await uploadFileChunkByPresignedURL(file, totalParts, uploadVideoRes);
 }
 
 
