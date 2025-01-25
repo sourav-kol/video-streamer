@@ -1,4 +1,4 @@
-var { getSignedUrls } = require('.././service/file.service');
+import { getSignedUrls } from '.././service/file.service';
 
 const getMultipartSignedUrls = async (req, res, next) => {
     const { key, totalParts, fileType } = req.body;
@@ -8,4 +8,4 @@ const getMultipartSignedUrls = async (req, res, next) => {
     res.status(200).send(result);
 }
 
-module.exports = { getMultipartSignedUrls }
+export { getMultipartSignedUrls }

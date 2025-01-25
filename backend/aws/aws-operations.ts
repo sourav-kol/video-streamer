@@ -1,4 +1,6 @@
-const { getAWSConnection } = require('./aws');
+import { CompleteMultipartUploadOutput, CompleteMultipartUploadRequest, CreateMultipartUploadOutput, CreateMultipartUploadRequest } from 'aws-sdk/clients/s3';
+import { getAWSConnection } from './aws';
+import { preSignedUrlOutput } from '.././types/aws';
 
 //test method to verify connection...
 const getAllS3Buckets = async () => {
@@ -12,35 +14,36 @@ const getAllS3Buckets = async () => {
     })
 }
 
-const startMultipartUpload = async (fileName, fileType) => {
-    const params = {
-        Bucket: process.env.AWS_BUCKET,
+const startMultipartUpload = async (fileName: string, fileType: string): Promise<string> => {
+    const params: CreateMultipartUploadRequest = {
+        Bucket: process.env.AWS_BUCKET || '',
         Key: fileName,
         ContentType: fileType,
     };
 
     var s3 = getAWSConnection();
 
-    const upload = await s3.createMultipartUpload(params).promise();
+    const upload: CreateMultipartUploadOutput = await s3.createMultipartUpload(params).promise();
 
-    return upload.UploadId;
+    return upload.UploadId as string;
 }
 
 //method to upload multipart file in s3 bucket
-const getMultipartSignedUrls = async (key, totalParts, fileType) => {
+const getMultipartSignedUrls = async (key: string, totalParts: number, fileType: string): Promise<preSignedUrlOutput | string> => {
     var uploadId = await startMultipartUpload(key, fileType);
 
     if (!uploadId)
         return "No upload id generated";
 
-    return await createPresignedURL(key, uploadId, totalParts);
+    return await createMultipartPresignedURL(key, uploadId, totalParts);
 }
 
-const createPresignedURL = async (key, uploadId, totalParts) => {
+//todo: refactor
+const createMultipartPresignedURL = async (key: string, uploadId: string, totalParts: number): Promise<preSignedUrlOutput> => {
     var s3 = getAWSConnection();
     const signedUrlExpireSeconds = 60 * 5;
     console.log("params: ", key, uploadId, totalParts);
-    var signedUrls = [];
+    var signedUrls: string[] = [];
     for (let partNumber = 1; partNumber <= 1; partNumber++) {
         var params = {
             Bucket: process.env.AWS_BUCKET,
@@ -54,14 +57,14 @@ const createPresignedURL = async (key, uploadId, totalParts) => {
         signedUrls.push(signedUrl);
     }
     return {
-        urls: signedUrl,
+        urls: signedUrls,
         uploadId: uploadId
     };
 }
 
-const completeUpload = async (fileName, uploadId, parts) => {
-    const params = {
-        Bucket: process.env.AWS_BUCKET,
+const completeUpload = async (fileName: string, uploadId: string, parts: any): Promise<boolean> => {
+    const params: CompleteMultipartUploadRequest = {
+        Bucket: process.env.AWS_BUCKET || "",
         Key: fileName,
         UploadId: uploadId,
         MultipartUpload: {
@@ -69,8 +72,8 @@ const completeUpload = async (fileName, uploadId, parts) => {
         },
     };
     var s3 = getAWSConnection();
-    const complete = await s3.completeMultipartUpload(params);
-    return { fileUrl: complete.Location };
+    s3.completeMultipartUpload(params);
+    return true;
 }
 
-module.exports = { getAllS3Buckets, getMultipartSignedUrls, completeUpload }
+export { getAllS3Buckets, getMultipartSignedUrls, completeUpload }

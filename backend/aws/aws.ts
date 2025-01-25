@@ -1,4 +1,4 @@
-var AWS = require('aws-sdk');
+import AWS from 'aws-sdk';
 
 var getAWSConnection = () => {
     AWS.config.update({
@@ -10,4 +10,4 @@ var getAWSConnection = () => {
     return new AWS.S3();
 }
 
-module.exports = { getAWSConnection }
+export { getAWSConnection }

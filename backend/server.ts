@@ -1,7 +1,6 @@
-const { server, express } = require('./routes');
-const fileRouter = require('./routes/files.routes');
-var cors = require('cors')
-
+import { server, express } from './routes';
+import { fileRouter } from './routes/files.routes';
+import cors from 'cors';
 
 var port = process.env.PORT || 5000;
 

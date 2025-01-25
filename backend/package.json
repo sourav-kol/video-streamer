@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --env-file=.env server.js",
+    "start": "nodemon --env-file=.env server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -17,6 +18,10 @@
     "uuid": "^11.0.5"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@aws-sdk/types": "^3.734.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.10",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2"
   }
 }
