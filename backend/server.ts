@@ -4,7 +4,10 @@ import cors from 'cors';
 
 var port = process.env.PORT || 3000;
 
-server.use(express.json());
+// server.use(express.json());
+server.use(express.json({ limit: '50mb' }));
+server.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 //cors - FE 
 var corsOptions = {
   origin: 'http://localhost:3000',

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { CHUNK_SIZE } from "@/constants/app-constants";
 import { generateServerURL } from '../helper/urlHelper';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,15 +22,42 @@ const startUpload = async (key: string, fileType: string) => {
     return await axios.post(generateServerURL("file/upload/start"), params)
 }
 
+//todo: move to helper.
+const convertBlobToBase64 = async (file: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+
+        reader.onload = () => resolve(btoa(
+            new Uint8Array(reader.result).reduce(
+                (data, byte) => data + String.fromCharCode(byte),
+                ""
+            )));
+
+        reader.onerror = reject;
+        //reader.readAsDataURL(file);
+    });
+}
+
 const uploadChunk = async (key: string, partNumber: number, fileType: string, uploadId: string, chunk: Blob) => {
+    var chunkBase64: string = ''
+    await convertBlobToBase64(chunk)
+        .then(res => {
+            chunkBase64 = res;
+        })
+        .catch(err => {
+
+        });
+
     var params = {
         key,
         partNumber,
         fileType,
         uploadId,
-        chunk
+        chunk: chunkBase64
     };
-    return await axios.post(generateServerURL("file/upload"), params)
+
+    return await axios.post(generateServerURL("file/upload"), params);
 }
 
 const completeUpload = async (key: string, uploadId: string, parts: completeUploadRequest[]) => {
@@ -45,13 +72,12 @@ export const handleFileUpload = async (file: File) => {
     if (!file)
         return "Please select a file to be uplaoded!!!";
 
-    const key = uuidv4();
+    const key = file.name;
     const fileType = file.type;
-    var uploadVideoRes: uploadVideoResponse;
 
     const totalParts = Math.ceil(file.size / CHUNK_SIZE);
 
-    var uploadId: string;
+    var uploadId: string = '';
     let parts: completeUploadRequest[] = [];
     var uploadPromise: Promise<any>[] = [];
 
@@ -73,8 +99,8 @@ export const handleFileUpload = async (file: File) => {
 
     uploadAllParts.map((item, index) => {
         var temp: completeUploadRequest = {
-            etag: JSON.parse(item.headers["etag"]),
-            partNumber: index + 1
+            etag: JSON.parse(item.data.etag),
+            partNumber: item.data.partNumber
         }
         parts.push(temp)
     });

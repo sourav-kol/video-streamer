@@ -6,8 +6,10 @@ const startFileUpload = async (key: string, fileType: string): Promise<string> =
     return uploadId;
 }
 
-const uploadPart = async (key: string, partNumber: number, fileType: string, uploadId: string, chunk: Blob): Promise<completeUploadRequest> => {
-    var result = await uploadFilePart(key, partNumber, fileType, uploadId, chunk);
+const uploadPart = async (key: string, partNumber: number, fileType: string, uploadId: string, chunkBase64: string): Promise<completeUploadRequest> => {
+    var chunkBlob = Buffer.from(chunkBase64, "base64");
+    //var chunkBlob = new Blob([atob(chunkBase64)], { type: "application/octet-stream" });
+    var result = await uploadFilePart(key, partNumber, fileType, uploadId, chunkBlob);
     return result;
 }
 

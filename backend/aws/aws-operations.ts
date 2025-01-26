@@ -1,4 +1,4 @@
-import { CompleteMultipartUploadRequest, CreateMultipartUploadOutput, CreateMultipartUploadRequest, UploadPartRequest } from 'aws-sdk/clients/s3';
+import { CompleteMultipartUploadRequest, CreateBucketRequest, CreateMultipartUploadOutput, CreateMultipartUploadRequest, UploadPartRequest } from 'aws-sdk/clients/s3';
 import { getAWSConnection } from './aws';
 import { preSignedUrlOutput, completeUploadRequest } from '.././types/aws';
 
@@ -10,13 +10,13 @@ const startMultipartUpload = async (fileName: string, fileType: string): Promise
     };
 
     var s3 = getAWSConnection();
-
+    
     const upload: CreateMultipartUploadOutput = await s3.createMultipartUpload(params).promise();
 
     return upload.UploadId as string;
 }
 
-const uploadFilePart = async (key: string, partNumber: number, fileType: string, uploadId: string, chunk: Blob): Promise<completeUploadRequest> => {
+const uploadFilePart = async (key: string, partNumber: number, fileType: string, uploadId: string, chunk: Buffer): Promise<completeUploadRequest> => {
     var s3 = getAWSConnection();
     var params: UploadPartRequest = {
         Bucket: process.env.AWS_BUCKET,
@@ -44,8 +44,11 @@ const completeUpload = async (fileName: string, uploadId: string, parts: complet
         },
     };
     var s3 = getAWSConnection();
-    console.log("params: ", params);
-    s3.completeMultipartUpload(params);
+    console.log("params: ", parts);
+
+    s3.completeMultipartUpload(params, (err, output) => {
+        console.log(err, output);
+    });
     return true;
 }
 

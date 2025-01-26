@@ -1,1 +1,1 @@
-export const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+export const CHUNK_SIZE: number = 6 * 1024 * 1024; // 6MB - minimun sholud be 5mb
